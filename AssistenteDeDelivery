@@ -1,0 +1,43 @@
+{
+  "Comment": "Assistente de Delivery que sugere pratos e bebidas utilizando Amazon Bedrock",
+  "StartAt": "ObterPreferencias",
+  "States": {
+    "ObterPreferencias": {
+      "Comment": "Coleta as preferências do usuário para prato e bebida",
+      "Type": "Pass",
+      "Result": {
+        "tipoDePrato": "italiano",  // Exemplo: prato sugerido
+        "tipoDeBebida": "vinho"      // Exemplo: bebida sugerida
+      },
+      "ResultPath": "$.preferencias",
+      "Next": "GerarSugestoes"
+    },
+    "GerarSugestoes": {
+      "Comment": "Gera sugestões de pratos e bebidas utilizando o modelo LLM do Amazon Bedrock",
+      "Type": "Task",
+      "Resource": "arn:aws:bedrock:REGION:ACCOUNT_ID:invokeModel/MODEL_NAME",
+      "Parameters": {
+        "Input": {
+          "data": {
+            "prato": "$.preferencias.tipoDePrato",
+            "bebida": "$.preferencias.tipoDeBebida"
+          },
+          "prompt": "Sugira um prato e uma bebida em forma de resposta criativa.",
+          "maxTokens": 150, // Número máximo de tokens para a resposta
+          "temperature": 0.7, // Nível de aleatoriedade nas respostas
+          "n": 1, // Número de respostas a serem geradas
+          "stop": ["\n"] // Ponto para interromper a geração de texto
+        }
+      },
+      "ResultPath": "$.sugestoes",
+      "Next": "Finalizar"
+    },
+    "Finalizar": {
+      "Comment": "Finaliza o fluxo de sugestões",
+      "Type": "Succeed",
+      "Output": {
+        "sugestoes": "$.sugestoes"
+      }
+    }
+  }
+}
